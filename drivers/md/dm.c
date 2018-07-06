@@ -25,6 +25,7 @@
 #include <linux/elevator.h> /* for rq_end_sector() */
 #include <linux/blk-mq.h>
 #include <linux/pr.h>
+#include <linux/iosched_switcher.h>
 
 #include <trace/events/block.h>
 
@@ -974,7 +975,8 @@ static void dec_pending(struct dm_io *io, int error)
 		} else {
 			/* done with normal IO or empty flush */
 			trace_block_bio_complete(md->queue, bio, io_error);
-			bio->bi_error = io_error;
+			if (io_error)
+				bio->bi_error = io_error;
 			bio_endio(bio);
 		}
 	}
@@ -2438,6 +2440,8 @@ static struct mapped_device *alloc_dev(int minor)
 
 	BUG_ON(old_md != MINOR_ALLOCED);
 
+	init_iosched_switcher(md->queue);
+
 	return md;
 
 bad:
@@ -3517,11 +3521,15 @@ struct mapped_device *dm_get_from_kobject(struct kobject *kobj)
 
 	md = container_of(kobj, struct mapped_device, kobj_holder.kobj);
 
-	if (test_bit(DMF_FREEING, &md->flags) ||
-	    dm_deleting_md(md))
-		return NULL;
-
+	spin_lock(&_minor_lock);
+	if (test_bit(DMF_FREEING, &md->flags) || dm_deleting_md(md)) {
+		md = NULL;
+		goto out;
+	}
 	dm_get(md);
+out:
+	spin_unlock(&_minor_lock);
+
 	return md;
 }
 

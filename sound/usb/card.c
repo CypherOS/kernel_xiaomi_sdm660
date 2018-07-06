@@ -276,6 +276,7 @@ static int snd_usb_create_stream(struct snd_usb_audio *chip, int ctrlif, int int
 /*
  * parse audio control descriptor and create pcm/midi streams
  */
+
 static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 {
 	struct usb_device *dev = chip->dev;
@@ -324,10 +325,10 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 			dev_err(&dev->dev, "cannot find UAC_HEADER\n");
 			return -EINVAL;
 		}
-
-		h1 = control_header;
-		rest_bytes = (void *)(host_iface->extra +
-				host_iface->extralen) - control_header;
+  
+                h1 = control_header;
+		rest_bytes = (void *)(host_iface->extra + host_iface->extralen) -
+			control_header;
 
 		/* just to be sure -- this shouldn't hit at all */
 		if (rest_bytes <= 0) {

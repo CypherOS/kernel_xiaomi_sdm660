@@ -116,6 +116,9 @@ config PM_SLEEP
 	depends on SUSPEND || HIBERNATE_CALLBACKS
 	select PM
 
+config SUSPEND_NVS
+	def_bool y
+
 config PM_SLEEP_SMP
 	def_bool y
 	depends on SMP
@@ -321,3 +324,8 @@ config PM_GENERIC_DOMAINS_OF
 
 config CPU_PM
 	bool
+
+config	BOEFFLA_WL_BLOCKER
+		bool "Boeffla generic wakelock blocker driver"
+		depends on PM
+		default N
